@@ -1,34 +1,16 @@
-const requestBucketsByKey = new Map();
+const { rateLimit } = require('express-rate-limit');
 
-function createInMemoryRateLimiter({
-  windowMilliseconds = 60 * 1000,
-  maxRequestsPerWindow = 60,
-} = {}) {
-  return function rateLimitMiddleware(request, response, next) {
-    const clientKey = request.ip || request.connection.remoteAddress || 'unknown_client';
-    const currentTimestamp = Date.now();
-    const existingBucket = requestBucketsByKey.get(clientKey);
-
-    if (!existingBucket || currentTimestamp - existingBucket.windowStart >= windowMilliseconds) {
-      requestBucketsByKey.set(clientKey, {
-        windowStart: currentTimestamp,
-        requestCount: 1,
-      });
-      return next();
-    }
-
-    if (existingBucket.requestCount >= maxRequestsPerWindow) {
-      return response.status(429).json({
-        success: false,
-        message: 'Too many requests. Please retry shortly.',
-      });
-    }
-
-    existingBucket.requestCount += 1;
-    return next();
-  };
-}
+const apiRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests. Please retry shortly.',
+  },
+});
 
 module.exports = {
-  createInMemoryRateLimiter,
+  apiRateLimiter,
 };

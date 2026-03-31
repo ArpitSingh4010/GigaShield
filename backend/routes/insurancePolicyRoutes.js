@@ -24,10 +24,9 @@ const {
 } = require('../validators/requestValidators');
 const { validateIncomingRequest } = require('../middleware/validationMiddleware');
 const { requireAuthIfEnabled } = require('../middleware/optionalAuth');
-const { createInMemoryRateLimiter } = require('../middleware/rateLimitMiddleware');
+const { apiRateLimiter } = require('../middleware/rateLimitMiddleware');
 
 const insurancePolicyRouter = express.Router();
-const apiRateLimiter = createInMemoryRateLimiter();
 
 /**
  * POST /api/insurance-policies/subscribe
