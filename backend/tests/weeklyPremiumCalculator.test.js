@@ -118,6 +118,11 @@ describe('identifyPersonaEarningsBand', () => {
     expect(earningsBand.averageDailyEarningsInRupees).toBe(700);
   });
 
+  test('maps boundary value to the next band as expected', () => {
+    const earningsBand = identifyPersonaEarningsBand(22000);
+    expect(earningsBand.averageDailyEarningsInRupees).toBe(1000);
+  });
+
   test('falls back to mid-tier band for out-of-range value', () => {
     const earningsBand = identifyPersonaEarningsBand(100000);
     expect(earningsBand.averageDailyEarningsInRupees).toBe(1000);

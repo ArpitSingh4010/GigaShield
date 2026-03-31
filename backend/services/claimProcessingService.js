@@ -13,6 +13,7 @@ const InsuranceClaim = require('../models/InsuranceClaim');
 const InsurancePolicy = require('../models/InsurancePolicy');
 const DeliveryPartner = require('../models/DeliveryPartner');
 const DisruptionEvent = require('../models/DisruptionEvent');
+const mongoose = require('mongoose');
 const {
   INSURANCE_CLAIM_STATUSES,
   INSURANCE_POLICY_STATUSES,
@@ -23,6 +24,17 @@ const {
   determineCompensationAmountForDisruption,
 } = require('./disruptionThresholdChecker');
 
+const EXCLUSION_TAG_LABELS = {
+  war_or_hostilities: 'war or hostile operations',
+  pandemic_or_epidemic: 'pandemic or epidemic events',
+};
+
+function assertValidMongoObjectId(idValue, fieldLabel) {
+  if (!mongoose.isValidObjectId(idValue)) {
+    throw new Error(`Invalid ${fieldLabel} format provided.`);
+  }
+}
+
 /**
  * Retrieves and validates the active insurance policy for a delivery
  * partner.  Throws if no active policy is found.
@@ -32,7 +44,9 @@ const {
  * @throws {Error} If no active policy exists for the given partner.
  */
 async function fetchActiveInsurancePolicyForDeliveryPartner(deliveryPartnerId) {
-  const deliveryPartner = await DeliveryPartner.findById(deliveryPartnerId);
+  assertValidMongoObjectId(deliveryPartnerId, 'delivery partner ID');
+  const deliveryPartnerObjectId = new mongoose.Types.ObjectId(deliveryPartnerId);
+  const deliveryPartner = await DeliveryPartner.findOne({ _id: deliveryPartnerObjectId });
 
   if (!deliveryPartner || !deliveryPartner.activeInsurancePolicyId) {
     throw new Error(
@@ -40,9 +54,9 @@ async function fetchActiveInsurancePolicyForDeliveryPartner(deliveryPartnerId) {
     );
   }
 
-  const activeInsurancePolicy = await InsurancePolicy.findById(
-    deliveryPartner.activeInsurancePolicyId
-  );
+  const activeInsurancePolicy = await InsurancePolicy.findOne({
+    _id: deliveryPartner.activeInsurancePolicyId,
+  });
 
   if (!activeInsurancePolicy || !activeInsurancePolicy.isPolicyCurrentlyActive()) {
     throw new Error(
@@ -156,23 +170,28 @@ async function processIncomingInsuranceClaim(incomingClaimRequestData) {
   const activeInsurancePolicy =
     await fetchActiveInsurancePolicyForDeliveryPartner(deliveryPartnerId);
 
-  const triggeringDisruptionEvent = await DisruptionEvent.findById(triggeringDisruptionEventId);
+  assertValidMongoObjectId(triggeringDisruptionEventId, 'disruption event ID');
+  const disruptionEventObjectId = new mongoose.Types.ObjectId(triggeringDisruptionEventId);
+  const triggeringDisruptionEvent = await DisruptionEvent.findOne({
+    _id: disruptionEventObjectId,
+  });
   if (!triggeringDisruptionEvent) {
     throw new Error(
       `No disruption event found with ID: ${triggeringDisruptionEventId}`
     );
   }
 
-  const policyCoverageExclusions = Array.isArray(activeInsurancePolicy.coverageExclusions)
-    ? activeInsurancePolicy.coverageExclusions
-    : [];
+  const policyExclusions = activeInsurancePolicy.coverageExclusions;
 
   if (
     triggeringDisruptionEvent.policyExclusionTag
-    && policyCoverageExclusions.includes(triggeringDisruptionEvent.policyExclusionTag)
+    && policyExclusions.includes(triggeringDisruptionEvent.policyExclusionTag)
   ) {
+    const exclusionLabel =
+      EXCLUSION_TAG_LABELS[triggeringDisruptionEvent.policyExclusionTag]
+      || 'excluded events';
     throw new Error(
-      `Claim cannot be processed because disruption event is excluded: ${triggeringDisruptionEvent.policyExclusionTag}`
+      `Claim cannot be processed because it relates to ${exclusionLabel}, which is excluded under this policy.`
     );
   }
 

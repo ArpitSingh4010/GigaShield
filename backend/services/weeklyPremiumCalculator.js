@@ -111,14 +111,20 @@ function getPlatformRiskMultiplier(deliveryPlatformNames = []) {
 function identifyPersonaEarningsBand(monthlyEarningsInRupees) {
   const earnings = Number(monthlyEarningsInRupees) || 0;
   const personaBands = Object.values(DELIVERY_PARTNER_PERSONA_EARNINGS_BANDS);
+  const highestDefinedBandMaximum = Math.max(
+    ...personaBands.map((band) => band.monthlyEarningsInRupeesRange[1])
+  );
 
-  const matchedBand = personaBands.find((band) => {
+  const matchedBands = personaBands.filter((band) => {
     const [minimum, maximum] = band.monthlyEarningsInRupeesRange;
-    return earnings >= minimum && earnings < maximum;
+    const isHighestBandMaximum = maximum === highestDefinedBandMaximum;
+    return earnings >= minimum && (isHighestBandMaximum ? earnings <= maximum : earnings < maximum);
   });
 
-  if (matchedBand) {
-    return matchedBand;
+  if (matchedBands.length > 0) {
+    return matchedBands.sort((leftBand, rightBand) => {
+      return rightBand.monthlyEarningsInRupeesRange[0] - leftBand.monthlyEarningsInRupeesRange[0];
+    })[0];
   }
 
   return DELIVERY_PARTNER_PERSONA_EARNINGS_BANDS.MID_TIER;

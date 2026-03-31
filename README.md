@@ -83,9 +83,9 @@ Persona Income Bands Used in the Model
 
 | Persona Segment | Monthly Earnings (INR) | Typical Daily Earnings (INR) | Risk Context |
 |---|---:|---:|---|
-| Entry-level | 15,000 – 22,000 | 700 | Limited buffer against 1–2 missed days |
-| Mid-tier | 22,000 – 32,000 | 1,000 | Moderate earnings stability with periodic disruption risk |
-| High-activity | 32,000 – 45,000 | 1,400 | Higher exposure from longer active hours and peak-time dependence |
+| Entry-level | 15,000 - 22,000 | 700 | Limited buffer against 1-2 missed days |
+| Mid-tier | 22,000 - 32,000 | 1,000 | Moderate earnings stability with periodic disruption risk |
+| High-activity | 32,000 - 45,000 | 1,400 | Higher income-at-risk per disruption window due to longer active hours |
 
 These earnings bands are now configurable in backend constants and are used to explain coverage suitability.
 
@@ -143,7 +143,7 @@ Premiums are adjusted based on:
 
 Pricing Justification Logic (now implemented in backend):
 
-- Weekly earnings estimate = average daily earnings × 6 working days
+- Weekly earnings estimate = average daily earnings x 6 working days
 - Suggested coverage benchmark = 50% of weekly earnings estimate
 - Projected loss ratio = expected weekly payout / weekly premium
 - Target loss ratio = 0.65 (with sustainable guardrails 0.40 to 0.80)
@@ -359,4 +359,3 @@ Key API outputs for verification:
 
 - `POST /api/insurance-policies/subscribe` now returns `pricingJustification`
 - `GET /api/insurance-policies/metadata/pricing-model` returns exclusions, loss-ratio guardrails, and IRDAI deployment note
-
