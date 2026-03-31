@@ -140,6 +140,7 @@ Premiums are adjusted based on:
 2. Platform-specific multiplier (Swiggy, Zomato, Dunzo, Blinkit, Other)
 3. Earnings-band context (to evaluate whether coverage is meaningful relative to weekly earnings)
 4. Loss-ratio guardrails (to avoid underpricing/overpricing)
+5. Short-term disruption pressure in operations, including fuel access stress scenarios like LPG shortages that can occur during PF war/geopolitical conflict periods and other supply-chain problems
 
 Pricing Justification Logic (now implemented in backend):
 
@@ -164,7 +165,11 @@ Extreme Heat	  |   Temperature > 42°C
 
 High Pollution	|    AQI > 300
 
+LPG Shortage  |    LPG Shortage Severity Index > 70
+
 When these conditions are met, compensation is automatically initiated.
+
+The LPG shortage trigger is intended for measurable city/zone-level fuel scarcity events (for example, supply disruption during PF war-linked shocks or other logistics bottlenecks) that reduce delivery partners' earning ability.
 
 **9. Fraud Prevention Strategy**
 
