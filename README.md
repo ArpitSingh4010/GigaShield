@@ -489,6 +489,18 @@ Tiny claim submission payload example:
 }
 ```
 
+Minimum payload variant (essential fields only):
+
+```json
+{
+  "deliveryPartnerId": "65f0c2a1b8d4ef0012345678",
+  "triggeringDisruptionEventId": "65f0c2a1b8d4ef0012345679",
+  "partnerLocationAtDisruptionTime": { "latitude": 13.0827, "longitude": 80.2707 },
+  "networkSignalCoordinates": { "latitude": 13.083, "longitude": 80.271 },
+  "minutesActiveOnDeliveryPlatform": 45
+}
+```
+
 ### Health
 - `GET /api/health`
 
